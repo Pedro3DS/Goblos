@@ -1,0 +1,22 @@
+{
+  "name": "com.neo-utils.console-plus",
+  "version": "1.2.1",
+  "displayName": "NeoConsolePlus",
+  "description": "Editor and Development Build command console for Unity with attribute-based commands, autocomplete, shared clean runtime utilities, command history, runtime overlay and release-safe debug logging.",
+  "unity": "2022.3",
+  "author": {
+    "name": "NeoUtils"
+  },
+  "keywords": [
+    "unity",
+    "console",
+    "debug",
+    "runtime",
+    "commands",
+    "overlay",
+    "neoutils",
+    "neodebug",
+    "logging"
+  ],
+  "unityRelease": "0f1"
+}
