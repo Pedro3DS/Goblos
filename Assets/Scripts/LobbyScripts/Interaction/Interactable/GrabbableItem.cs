@@ -30,6 +30,12 @@ namespace Project.Interaction
         [SerializeField] private ItemDefinition _definition;
         public ItemDefinition Definition => _definition;
 
+        [Header("Encaixe na mão (opcional)")]
+        [Tooltip("Transform FILHO direto do item que deve coincidir com o socket da mão ao segurar (posição + rotação) - ex: um ponto no cabo de uma espada. Se vazio, usa a origem do próprio item (comportamento antigo, item 'gruda' cru no socket).")]
+        [SerializeField] private Transform _gripPoint;
+        [Tooltip("Só pra itens DuasMaos: ponto de encaixe da mão secundária (ex: cano de um rifle, ponta oposta de uma maca). O PlayerHandsController move o IK-target da mão secundária até aqui a cada frame.")]
+        [SerializeField] private Transform _secondaryGripPoint;
+
         private readonly NetworkVariable<bool> _isHeld =
             new NetworkVariable<bool>(false, NetworkVariableReadPermission.Everyone, NetworkVariableWritePermission.Server);
         private readonly NetworkVariable<ulong> _holderClientId =
@@ -51,14 +57,22 @@ namespace Project.Interaction
 
         public override bool CanInteract(ulong interactingClientId) => !IsHeld;
 
+        /// <summary>Usado pelo PlayerHandsController pra saber se este item tem grip secundário (item de duas mãos).</summary>
+        public bool TryGetSecondaryGripPoint(out Transform point)
+        {
+            point = _secondaryGripPoint;
+            return point != null;
+        }
+
         protected override void OnInteract(ulong interactingClientId)
         {
             if (!NetworkManager.ConnectedClients.TryGetValue(interactingClientId, out var client)) return;
+             Debug.Log($"[{name}] OnInteract");
             if (client.PlayerObject == null) return;
 
             var hands = client.PlayerObject.GetComponent<PlayerHandsController>();
             if (hands == null) return;
-
+            Debug.Log($"[{name}] Have Hands");
             if (!hands.ServerTryGrab(this))
             {
                 Debug.Log($"[{name}] Client {interactingClientId} tentou pegar mas as mãos estão cheias.");
@@ -68,14 +82,14 @@ namespace Project.Interaction
         /// <summary>Servidor apenas. Chamado pelo PlayerHandsController depois de validar que há slot de mão livre.</summary>
         public void ServerGrab(Transform handSocket, ulong holderClientId)
         {
+            Debug.Log($"[{name}] ServerGrab");
             _isHeld.Value = true;
             _holderClientId.Value = holderClientId;
 
             NetworkObject.ChangeOwnership(holderClientId);
             NetworkObject.TrySetParent(handSocket, worldPositionStays: false);
 
-            transform.localPosition = Vector3.zero;
-            transform.localRotation = Quaternion.identity;
+            ApplyGripOffset();
 
             _rb.isKinematic = true;
             SetCollidersEnabled(false);
@@ -83,8 +97,39 @@ namespace Project.Interaction
             NotifyGrabbedClientRpc();
         }
 
+        /// <summary>
+        /// Alinha o item no socket da mão (que já é o pai, nesse ponto) usando o
+        /// _gripPoint como referência: o pivô do item se desloca pra que o grip point
+        /// coincida exatamente com a posição/rotação do socket. Sem _gripPoint
+        /// definido, cai no comportamento antigo (origem do item = socket).
+        ///
+        /// É só matemática determinística a partir de transforms locais - por isso
+        /// dá pra chamar tanto no servidor (ServerGrab) quanto em todo cliente (via
+        /// ClientRpc) sem precisar sincronizar nada extra pela rede.
+        /// </summary>
+        private void ApplyGripOffset()
+        {
+            if (_gripPoint == null)
+            {
+                transform.localPosition = Vector3.zero;
+                transform.localRotation = Quaternion.identity;
+                return;
+            }
+
+            Quaternion invGripRotation = Quaternion.Inverse(_gripPoint.localRotation);
+            transform.localRotation = invGripRotation;
+            transform.localPosition = invGripRotation * -_gripPoint.localPosition;
+        }
+
         [Rpc(SendTo.Everyone)]
-        private void NotifyGrabbedClientRpc() => OnGrabbed(transform.parent);
+        private void NotifyGrabbedClientRpc()
+        {
+            // Reaplica o offset em cada cliente: o parenting em si é sincronizado pelo
+            // NetworkObject, mas isso garante o alinhamento certo independente de
+            // detalhe de replicação, sem precisar de um NetworkTransform no item.
+            ApplyGripOffset();
+            OnGrabbed(transform.parent);
+        }
 
         [Rpc(SendTo.Server)]
         public void RequestDropRpc()

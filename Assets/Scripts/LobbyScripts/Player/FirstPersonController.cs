@@ -95,6 +95,7 @@ namespace Project.Player
             _jumpTimeoutDelta = JumpTimeout;
             _fallTimeoutDelta = FallTimeout;
         }
+        
 
         private void Update()
         {

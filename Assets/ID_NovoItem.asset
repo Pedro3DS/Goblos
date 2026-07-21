@@ -1,0 +1,27 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 601c10635cc8b744d9e63ccfb7fe77d5, type: 3}
+  m_Name: ID_NovoItem
+  m_EditorClassIdentifier: 
+  DisplayName: Item Sem Nome
+  Description: 
+  Icon: {fileID: 0}
+  Type: 0
+  HandsRequired: 0
+  Size: 0
+  WeightKg: 1
+  IsThrowable: 1
+  ThrowForceMin: 4
+  ThrowForceMax: 14
+  MaxChargeTimeSeconds: 1.2
+  InventorySlotCost: 1
+  WorldPrefab: {fileID: 3408578489712062802, guid: 81b0724ebb7b4ec45b78c5a30a5dfc93, type: 3}

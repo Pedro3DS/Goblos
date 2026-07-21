@@ -2,6 +2,7 @@ using Project.Interaction;
 using Project.Items;
 using Unity.Netcode;
 using UnityEngine;
+using UnityEngine.InputSystem;
 
 namespace Project.Player
 {
@@ -22,6 +23,13 @@ namespace Project.Player
     /// _mainHandSocket/_offHandSocket devem ser os mesmos transforms usados pelo IK
     /// do Animator (ex: TwoBoneIKConstraint "Hand Target") - já que a mão é redonda/
     /// sem dedos, o item só encosta no socket, não precisa de pose de dedo.
+    ///
+    /// Itens de UmaMao só ocupam a mão principal (ou a secundária se a principal
+    /// estiver ocupada); a mão que sobra fica no seu pose de descanso normal do IK.
+    /// Itens de DuasMaos são fisicamente parentados só na mão principal, mas o
+    /// socket/IK-target da mão secundária é reposicionado a cada frame pra coincidir
+    /// com o _secondaryGripPoint do item (ver UpdateOffHandGripFollow) - isso roda
+    /// em TODOS os clientes, dono ou não, porque é pose visual, não input.
     /// </summary>
     [RequireComponent(typeof(NetworkObject))]
     public class PlayerHandsController : NetworkBehaviour
@@ -32,11 +40,12 @@ namespace Project.Player
 
         [Header("Referências")]
         [SerializeField] private FirstPersonController _bodyController;
-        [SerializeField] private Camera _aimCamera;
+        [Tooltip("Setado automaticamente pelo PlayerSetup (transform da câmera FP do dono). Só o .forward é usado, pra direção de arremesso.")]
+        [SerializeField] private Transform _aimTransform;
 
         [Header("Input")]
-        [SerializeField] private KeyCode _dropThrowKey = KeyCode.Q;
-        [SerializeField] private KeyCode _useKey = KeyCode.Mouse0;
+        [SerializeField] private InputActionReference _dropThrowKey;
+        [SerializeField] private InputActionReference _useKey;
         [Tooltip("Abaixo desse tempo segurando Q, conta como 'largar' em vez de 'arremessar'.")]
         [SerializeField] private float _tapThreshold = 0.15f;
 
@@ -53,8 +62,28 @@ namespace Project.Player
         private float _keyHeldTime;
         private bool _isCharging;
 
+        private Vector3 _offHandRestLocalPosition;
+        private Quaternion _offHandRestLocalRotation;
+
         public bool MainHandFree => !TryGetMainHandItem(out _);
         public bool OffHandFree => !TryGetOffHandItem(out _);
+
+        private void Awake()
+        {
+            // Guarda o pose de descanso original do IK target da mão secundária, pra
+            // conseguir voltar pra ele quando não tiver item de duas mãos ocupando-a.
+            if (_offHandSocket != null)
+            {
+                _offHandRestLocalPosition = _offHandSocket.localPosition;
+                _offHandRestLocalRotation = _offHandSocket.localRotation;
+            }
+        }
+
+        /// <summary>Chamado pelo PlayerSetup assim que a câmera do dono é criada.</summary>
+        public void SetAimTransform(Transform aimTransform)
+        {
+            _aimTransform = aimTransform;
+        }
 
         private void OnEnable()
         {
@@ -70,9 +99,38 @@ namespace Project.Player
 
         private void Update()
         {
+            // Pose visual do IK: precisa rodar em todo mundo, não só no dono, senão
+            // os outros clientes veem a mão secundária fora do lugar num item de duas mãos.
+            UpdateOffHandGripFollow();
+
             if (!IsOwner) return;
             HandleDropThrowInput();
             HandleUseInput();
+        }
+
+        /// <summary>
+        /// Quando as duas mãos seguram o MESMO item (item de duas mãos) e ele expõe
+        /// um _secondaryGripPoint, o socket/IK-target da mão secundária se move até
+        /// lá. Caso contrário, volta pro pose de descanso original do rig.
+        /// </summary>
+        private void UpdateOffHandGripFollow()
+        {
+            if (_offHandSocket == null) return;
+
+            bool isTwoHandedGrip = TryGetMainHandItem(out var main) &&
+                                   TryGetOffHandItem(out var off) &&
+                                   main == off &&
+                                   main.TryGetSecondaryGripPoint(out var secondaryGrip);
+
+            if (isTwoHandedGrip)
+            {
+                // _offHandSocket.SetPositionAndRotation(secondaryGrip.position, secondaryGrip.rotation);
+            }
+            else
+            {
+                _offHandSocket.localPosition = _offHandRestLocalPosition;
+                _offHandSocket.localRotation = _offHandRestLocalRotation;
+            }
         }
 
         private void HandleDropThrowInput()
@@ -84,16 +142,16 @@ namespace Project.Player
                 return;
             }
 
-            if (Input.GetKeyDown(_dropThrowKey))
+            if (_dropThrowKey.action.WasPerformedThisFrame())
             {
                 _isCharging = true;
                 _keyHeldTime = 0f;
             }
-            else if (_isCharging && Input.GetKey(_dropThrowKey))
+            else if (_isCharging && _dropThrowKey.action.IsPressed())
             {
                 _keyHeldTime += Time.deltaTime;
             }
-            else if (_isCharging && Input.GetKeyUp(_dropThrowKey))
+            else if (_isCharging && _dropThrowKey.action.WasReleasedThisFrame())
             {
                 _isCharging = false;
 
@@ -104,7 +162,7 @@ namespace Project.Player
                 else
                 {
                     float chargeFraction = Mathf.Clamp01(_keyHeldTime / heldItem.Definition.MaxChargeTimeSeconds);
-                    Vector3 direction = _aimCamera != null ? _aimCamera.transform.forward : transform.forward;
+                    Vector3 direction = _aimTransform != null ? _aimTransform.forward : transform.forward;
                     heldItem.RequestThrowRpc(chargeFraction, direction);
                 }
 
@@ -112,9 +170,18 @@ namespace Project.Player
             }
         }
 
+        void OnDrawGizmos()
+        {
+            if (_aimTransform != null)
+            {
+                Gizmos.color = Color.yellow;
+                Gizmos.DrawRay(_aimTransform.position, _aimTransform.forward * 2f);
+            }
+        }
+
         private void HandleUseInput()
         {
-            if (!Input.GetKeyDown(_useKey)) return;
+            if (!_useKey.action.WasPerformedThisFrame()) return;
             if (TryGetMainHandItem(out var item))
             {
                 item.RequestUseRpc();

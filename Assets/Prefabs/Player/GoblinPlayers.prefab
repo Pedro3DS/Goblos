@@ -4647,6 +4647,13 @@ GameObject:
   - component: {fileID: 4157116065929188283}
   - component: {fileID: 3926474491393828609}
   - component: {fileID: 3346683248243509840}
+  - component: {fileID: 2526256858917745068}
+  - component: {fileID: 2129902490829100873}
+  - component: {fileID: 525737188636997796}
+  - component: {fileID: 2914924102842741510}
+  - component: {fileID: 7168236660086892467}
+  - component: {fileID: 6417037541374762945}
+  - component: {fileID: 7067309965527660493}
   m_Layer: 0
   m_Name: GoblinPlayers
   m_TagString: Untagged
@@ -4774,8 +4781,13 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   MoveSpeed: 10
-  SprintSpeed: 5.5
+  SprintSpeed: 20
+  SprintCoolDown: 0
+  SprintTime: 0
+  SprintTimeMax: 0
+  SprintTimeSlider: {fileID: 0}
   SpeedChangeRate: 10
+  CarryWeightSpeedMultiplier: 1
   JumpHeight: 2
   Gravity: -25
   JumpTimeout: 0
@@ -4794,7 +4806,7 @@ MonoBehaviour:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 8684264734664465978}
-  m_Enabled: 1
+  m_Enabled: 0
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: fe66b7fcb155ca145a8b83d7f477da97, type: 3}
   m_Name: 
@@ -4919,6 +4931,151 @@ MonoBehaviour:
   - m_Rig: {fileID: 5066129358798818590}
     m_Active: 1
   m_Effectors: []
+--- !u!114 &2526256858917745068
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 8684264734664465978}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: d5a57f767e5e46a458fc5d3c628d0cbb, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  GlobalObjectIdHash: 544778648
+  InScenePlacedSourceGlobalObjectIdHash: 544778648
+  DeferredDespawnTick: 0
+  Ownership: 1
+  AlwaysReplicateAsRoot: 0
+  SynchronizeTransform: 1
+  <InScenePlaced>k__BackingField: 0
+  ActiveSceneSynchronization: 0
+  SceneMigrationSynchronization: 0
+  SpawnWithObservers: 1
+  DontDestroyWithOwner: 0
+  AutoObjectParentSync: 1
+  SyncOwnerTransformWhenParented: 1
+  AllowOwnerToParent: 0
+--- !u!114 &2129902490829100873
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 8684264734664465978}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 694e6682fb9bbff459c2814bd264313b, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  _eyePoint: {fileID: 0}
+  _interactionRange: 2.5
+  _interactableMask:
+    serializedVersion: 2
+    m_Bits: 128
+  _useLegacyKeyFallback: 0
+  _legacyInteractKey: 101
+  _getKey: {fileID: 0}
+--- !u!114 &525737188636997796
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 8684264734664465978}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: d939b407957fef14cb77e216a43153a7, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  ShowTopMostFoldoutHeaderGroup: 1
+  _mainHandSocket: {fileID: 8194227260681327928}
+  _offHandSocket: {fileID: 8194227260681327928}
+  _bodyController: {fileID: 8867225210087937995}
+  _aimTransform: {fileID: 0}
+  _dropThrowKey: {fileID: 0}
+  _useKey: {fileID: 0}
+  _tapThreshold: 0.15
+  _weightForMinSpeed: 20
+  _minSpeedMultiplier: 0.5
+--- !u!114 &2914924102842741510
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 8684264734664465978}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 65851f818e627434d949002195aed1fa, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  ShowTopMostFoldoutHeaderGroup: 1
+  _fpCameraPrefab: {fileID: 0}
+  _headSocket: {fileID: 0}
+  _movementController: {fileID: 8867225210087937995}
+  _selfHiddenRenderers:
+  - {fileID: 5392049128610817860}
+  - {fileID: 6739672731488777459}
+  - {fileID: 5161358775129225458}
+  - {fileID: 7630023470602119862}
+  - {fileID: 5668640167660926561}
+  - {fileID: 338124440200071597}
+--- !u!114 &7168236660086892467
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 8684264734664465978}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 1ba5bb218982ac84b934171d46eed11c, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  ShowTopMostFoldoutHeaderGroup: 1
+  _itemDatabase: {fileID: 11400000, guid: 138ccbdfaab1ab54fb00e7869ea82c50, type: 2}
+  _totalSlots: 12
+--- !u!114 &6417037541374762945
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 8684264734664465978}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 78fcd93d36a44f847802e8af2e2602bf, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  ShowTopMostFoldoutHeaderGroup: 1
+  _maxCarryCapacity: 50
+--- !u!114 &7067309965527660493
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 8684264734664465978}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 253c31855895acc41925a8b001d29bed, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  ShowTopMostFoldoutHeaderGroup: 1
+  _fpCameraPrefab: {fileID: 8708262563517796524, guid: d829cd7d9a7819540984dc83c84c7f56, type: 3}
+  _headSocket: {fileID: 5745770417811617768}
+  _selfHiddenRenderers:
+  - {fileID: 5392049128610817860}
+  - {fileID: 6739672731488777459}
+  - {fileID: 5161358775129225458}
+  - {fileID: 7630023470602119862}
+  - {fileID: 5668640167660926561}
+  - {fileID: 338124440200071597}
+  _movementController: {fileID: 8867225210087937995}
+  _interactor: {fileID: 2129902490829100873}
+  _handsController: {fileID: 525737188636997796}
 --- !u!1 &8743422990595549671
 GameObject:
   m_ObjectHideFlags: 0

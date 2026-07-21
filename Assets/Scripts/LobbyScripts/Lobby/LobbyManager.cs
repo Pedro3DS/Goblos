@@ -20,6 +20,7 @@ namespace Project.Lobby
 
         [SerializeField] private LobbyBedSpawnPoint[] _bedSpawnPoints = new LobbyBedSpawnPoint[MaxPlayers];
         [SerializeField] private LobbyPlayerColorPalette _colorPalette;
+        [SerializeField] private GameObject PlayerPrefab;
 
         private NetworkList<BedState> _beds;
 
@@ -48,8 +49,8 @@ namespace Project.Lobby
                     _beds.Add(BedState.Empty);
             }
 
-            _beds.OnListChanged += HandleBedsChanged;
-            RefreshAllBedVisuals();
+            // _beds.OnListChanged += HandleBedsChanged;
+            // RefreshAllBedVisuals();
 
             if (IsServer)
             {
